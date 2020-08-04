@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { StorageMap } from '@ngx-pwa/local-storage';
+import { mergeMap } from 'rxjs/operators';
+import { Observable, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'my-app',
@@ -35,11 +37,34 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.GenerateFile();
+    // this.GenerateFile();
+    this.Generate();
   }  
 
   private Generate(){
-    //
+    let keys: string[] = [];
+    this.storageHelper.keys().subscribe({
+        next: (key) => {
+              keys.push(key);
+              console.log('key :>> ', key);
+              this.log.push(key);
+        },
+        complete: () => {
+              console.log('keys :>> ', keys);
+              this.log.push('GetDataKey');
+              forkJoin( 
+                this.GetDataXKey(keys[0]),
+                this.GetDataXKey(keys[1]),
+                this.GetDataXKey(keys[2])
+              ).subscribe(f => {
+                console.log('f ', f);
+              })
+         }
+    });
+  }
+
+  private GetDataXKey(key: string): Observable<any> {
+      return this.storageHelper.get(key);
   }
   
   private GenerateFile(): void {
